@@ -22,9 +22,23 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Actor Mesh Comp")
 	UStaticMeshComponent* staticmesh;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "Floater Vectors")
-		FVector initialLocation;
+	UPROPERTY(EditInstanceOnly,BlueprintReadWrite, Category = "Floater Vars")
+	FVector initialLocation;
 
+	UPROPERTY(VisibleInstanceOnly,BlueprintReadWrite, Category = "Floater Vars")
+	FVector placedLocation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Floater Vars")
+	bool binitable;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Floater Vars")
+	FVector WorldOrigin;
+	
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Floater Vars")
+	bool bshouldfloat;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Floater Vars")
+		FVector InitialDirection;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
