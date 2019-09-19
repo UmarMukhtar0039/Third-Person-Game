@@ -10,8 +10,8 @@ UCLASS()
 class UDEMY_BASICS_API AFloater : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AFloater();
 
@@ -33,16 +33,26 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Floater Vars")
 	FVector WorldOrigin;
-	
+
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Floater Vars")
 	bool bshouldfloat;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Floater Vars")
-		FVector InitialDirection;
-public:	
+	FVector InitialDirection;
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Floater Vars")
+	FRotator Rotate;
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Floater Vars")
+	FVector InitialForce;
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Floater Vars")
+	FVector InitialTorque;
+
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
-	
+
+
 };

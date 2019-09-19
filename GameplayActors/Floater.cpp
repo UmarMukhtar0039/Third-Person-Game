@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Floater.h"
-
+#include "Components/StaticMeshComponent.h"
 
 // Sets default values
 AFloater::AFloater()
@@ -16,6 +16,9 @@ AFloater::AFloater()
 	WorldOrigin = FVector(0.0f);
 	InitialDirection = FVector(0.0f);
 	bshouldfloat = false;
+	//Rotate = FRotator(0.f);
+	InitialForce = FVector(2000000.f, 0.f, 0.f);
+	InitialTorque = FVector(0.f, 0.f, 0.f);
 }
 
 // Called when the game starts or when spawned
@@ -27,6 +30,9 @@ void AFloater::BeginPlay()
 
 	if(binitable)
 	SetActorLocation(initialLocation);
+
+	staticmesh->AddForce(InitialForce);
+	staticmesh->AddTorque(InitialTorque);
 }
 
 // Called every frame
@@ -37,7 +43,14 @@ void AFloater::Tick(float DeltaTime)
 	if (bshouldfloat)
 	{
 		FHitResult HitResult;
-		AddActorLocalOffset( InitialDirection, false, &HitResult);
+		AddActorLocalOffset( InitialDirection, true , &HitResult);
+		
+		FVector HitLocation = HitResult.Location;
+
+		UE_LOG(LogTemp, Warning, TEXT("Hit Location: X = %f, Y = %f , Z = %f"),
+			HitLocation.X, HitLocation.Y, HitLocation.Z);
 	}
+
+	AddActorLocalRotation(Rotate);
 }
 
