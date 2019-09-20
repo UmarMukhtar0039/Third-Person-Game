@@ -14,7 +14,6 @@ class UDEMY_BASICS_API AFloater : public AActor
 public:
 	// Sets default values for this actor's properties
 	AFloater();
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -50,9 +49,14 @@ protected:
 	FVector InitialTorque;
 
 public:
+	
+	float RunningTime;
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Floater Vars | Wave Parameters")
+	float Amplitude;
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Floater Vars | Wave Parameters")
+	float TimeStretch;
+	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-
-
 };
