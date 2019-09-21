@@ -40,6 +40,7 @@ void ACritter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	FVector NewLocation = GetActorLocation() + currentVelocity * DeltaTime;
 	SetActorLocation(NewLocation);
+
 }
 
 // Called to bind functionality to input
