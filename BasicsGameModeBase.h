@@ -2,19 +2,16 @@
 
 #pragma once
 
+
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "Udemy_BasicsGameModeBase.generated.h"
-
+#include "BasicsGameModeBase.generated.h"
 /**
  * 
  */
 UCLASS()
-class UDEMY_BASICS_API AUdemy_BasicsGameModeBase : public AGameModeBase
+class BASICS_API ABasicsGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
-	
-	
-	
+
 };

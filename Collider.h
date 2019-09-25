@@ -7,7 +7,7 @@
 #include "Collider.generated.h"
 
 UCLASS()
-class UDEMY_BASICS_API ACollider : public APawn
+class BASICS_API ACollider : public APawn
 {
 	GENERATED_BODY()
 
@@ -18,47 +18,57 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
-
-
-	UPROPERTY(VisibleAnywhere, Category = "Mesh")
-		class UStaticMeshComponent* meshComponent;
-
-	UPROPERTY(VisibleAnywhere, Category = "Mesh")
-		class USphereComponent* sphereComponent;
-
-	FORCEINLINE UStaticMeshComponent* getMeshComponent()const { return meshComponent; }
-	FORCEINLINE void SetMeshComponent(UStaticMeshComponent* mesh) { meshComponent = mesh; }
-
-	FORCEINLINE USphereComponent* GetSphereComponent()const { return sphereComponent; }
-	FORCEINLINE void SetSphereComponent(USphereComponent* sphere) { sphereComponent = sphere; }
-
-	//Setting Up Camera
-	UPROPERTY(VisibleAnywhere, Category = "Mesh")
-	class UCameraComponent* cameraComponent;
-	UPROPERTY(VisibleAnywhere, Category = "Mesh")
-	class USpringArmComponent* springarmComponent;
-
-
-	FORCEINLINE UCameraComponent* getCameraComponent()const { return cameraComponent; }
-	FORCEINLINE void SetCameraComponent(UCameraComponent* camera) { cameraComponent = camera; }
-
-	FORCEINLINE USpringArmComponent* GetSprinComponent()const { return springarmComponent; }
-	FORCEINLINE void SetSpringArmComponent(USpringArmComponent* springarm) { springarmComponent = springarm; }
-
-
-private:
-	void moveForward(float input);
-	void moveRight(float input);
-
-
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	class USphereComponent* SphereComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	class UStaticMeshComponent* MeshComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	class UCameraComponent* Camera;
 	
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	class USpringArmComponent* springarm;
+
+	UPROPERTY(VisibleAnywhere, Category = "MovementComponent")
+	class UColliderMovementComponent* MovementComponent;
+
+	//Getters And Setters
+	//StaticMesh
+	FORCEINLINE UStaticMeshComponent* GetMeshComponent() const { return MeshComponent; }
+	FORCEINLINE void SetMeshComponent(UStaticMeshComponent* inputMesh) { MeshComponent = inputMesh; }
+	//Sphere
+	FORCEINLINE USphereComponent* GetSphereComponent() const { return SphereComponent; }
+	FORCEINLINE void SetSphereComponent(USphereComponent* inputsphere) { SphereComponent = inputsphere; }
 	
+	// Camera
+	FORCEINLINE UCameraComponent* GetCameraComponent() const { return Camera; }
+	FORCEINLINE void SetCameraComponent(UCameraComponent* inputcamera) { Camera = inputcamera; }
+	//Springarm
+	FORCEINLINE USpringArmComponent* GetSpringArmComponent() const { return springarm; }
+	FORCEINLINE void SetSpringArmComponent(USpringArmComponent* inputspringarm) { springarm = inputspringarm; }
+	//Movement
+	virtual UPawnMovementComponent* GetMovementComponent()const override;
+
+
+
+	
+private:
+	//Pawn Movement
+	void Forward(float input);
+	void Right(float input);
+
+	//Camera Movement (Mouse Movement)
+	void PitchCamera(float axisvalue);
+	void YawCamera(float axisvalue);
+
+	FVector2D CameraInput;
 };

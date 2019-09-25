@@ -7,26 +7,37 @@
 #include "Critter.generated.h"
 
 UCLASS()
-class UDEMY_BASICS_API ACritter : public APawn
+class BASICS_API ACritter : public APawn
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this pawn's properties
 	ACritter();
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	UStaticMeshComponent* StaticMesh;
+
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	class UCameraComponent* Camera;
+
+	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	class USpringArmComponent* springarm;
+
+	UPROPERTY(EditInstanceOnly, Category = "Movement")
+	FVector CurrentVelocity;
+
+	UPROPERTY(EditInstanceOnly, Category = "Movement")
+	float speed;
+
+private:
+	void Forward(float input);
+	void Right(float input);
+
+
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "My Mesh")
-	UStaticMeshComponent* meshComponent;
-
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class UCameraComponent* camera;
-
-	UPROPERTY(EditAnywhere,Category = "Pawn Movement")
-	float maxSpeed;
 
 public:	
 	// Called every frame
@@ -35,10 +46,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-private:
-	void MoveForward(float value);
-	void MoveRight(float value);
-	
-	FVector currentVelocity;
-	
+
+
 };

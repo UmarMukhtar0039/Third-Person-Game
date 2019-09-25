@@ -1,30 +1,38 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
 #include "Critter.h"
 #include "Components/StaticMeshComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Components/InputComponent.h"
 
 // Sets default values
 ACritter::ACritter()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	//Create Default SceneCoponent as root component
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ROOT"));
+	StaticMesh = CreateDefaultSubobject <UStaticMeshComponent>(TEXT("Mesh"));
+	//Attaching staticmesh to rootcomponent
+	StaticMesh->SetupAttachment(GetRootComponent());
 
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	meshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Custom_Mesh"));
 
-	meshComponent->SetupAttachment(GetRootComponent());
+	springarm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Springarm"));
+	springarm->SetupAttachment(GetRootComponent());
 
-	camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	camera->SetupAttachment(GetRootComponent());
-	camera->SetRelativeLocation(FVector(300.f,0.f,300.f));
-	camera->SetRelativeRotation(FRotator(-30.f,0.f,0.f));
+	//Setting up camera
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	//Attaching camera to root
+	Camera->SetupAttachment(springarm);
+	Camera->SetRelativeLocation(FVector(-300.f, 0.f, 0.f), true);
+	Camera->SetRelativeRotation(FRotator(-45.f, 0.f, 0.f));
 
-	// Set Default player to be 0
+	CurrentVelocity = FVector(0.f);
+	speed = 100.f;
+
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
-	currentVelocity = FVector(0.f);
-	maxSpeed = 100.f;
 }
 
 // Called when the game starts or when spawned
@@ -38,28 +46,26 @@ void ACritter::BeginPlay()
 void ACritter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	FVector NewLocation = GetActorLocation() + currentVelocity * DeltaTime;
-	SetActorLocation(NewLocation);
-
+	FVector Newlocation(GetActorLocation() + CurrentVelocity * DeltaTime);
+	SetActorLocation(Newlocation);
 }
 
 // Called to bind functionality to input
 void ACritter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	PlayerInputComponent->BindAxis(TEXT("Move Forward"), this, &ACritter::MoveForward);
-	PlayerInputComponent->BindAxis(TEXT("Move Right"), this, &ACritter::MoveRight);
+	PlayerInputComponent->BindAxis(TEXT("Forward"),this,&ACritter::Forward);
+	PlayerInputComponent->BindAxis(TEXT("Right"),this,&ACritter::Right);
 }
 
-void ACritter::MoveForward(float value)
+
+void ACritter::Forward(float input)
 {
-	currentVelocity.X = FMath::Clamp(value, -1.f, 1.f) * maxSpeed;
+	CurrentVelocity.Y = FMath::Clamp(input, -1.f, 1.f) * speed;
 }
 
-void ACritter::MoveRight(float value)
+void ACritter::Right(float input)
 {
-	currentVelocity.Y = FMath::Clamp(value, -1.f, 1.f) * maxSpeed;
+	CurrentVelocity.X = FMath::Clamp(input, -1.f, 1.f) * speed;
 }
-
 
