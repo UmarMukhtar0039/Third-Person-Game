@@ -2,7 +2,7 @@
 
 
 #include "ColliderMovementComponent.h"
-
+#include "Logging/LogMacros.h"
 
 ///Can't do this
 //UColliderMovementComponent::UColliderMovementComponent()
@@ -29,11 +29,10 @@ void UColliderMovementComponent::TickComponent(float DeltaTime, enum ELevelTick 
 	{
 		FHitResult Hit;
 		SafeMoveUpdatedComponent(DesiredMovementThisFrame, UpdatedComponent->GetComponentRotation(), true, Hit);
-		
 		//Sliding along side if we bump into a wall or something.
-		if (Hit.IsValidBlockingHit())
+		if (!Hit.IsValidBlockingHit())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("hitting target "));
+			UE_LOG(LogTemp, Warning, TEXT("hitting target CSDSD"));
 			SlideAlongSurface(DesiredMovementThisFrame, 1.f - Hit.Time, Hit.Normal, Hit);
 		}
 	}

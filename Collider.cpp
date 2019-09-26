@@ -23,7 +23,7 @@ ACollider::ACollider()
 	SphereComponent->InitSphereRadius(40.f);
 	//This is collision presets.
 	SphereComponent->SetCollisionProfileName(TEXT("Pawn"));
-
+	SphereComponent->SetHiddenInGame(true);
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pawn"));
 	MeshComponent->SetupAttachment(GetRootComponent());
@@ -44,10 +44,11 @@ ACollider::ACollider()
 	springarm->TargetArmLength = 400.f;
 	springarm->bEnableCameraLag = true;
 	springarm->CameraLagSpeed = 3.f;
+	springarm->bUsePawnControlRotation = false;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(springarm,USpringArmComponent::SocketName);
-
+	Camera->bUsePawnControlRotation = true;
 	//Settingup Movement
 	MovementComponent = CreateDefaultSubobject<UColliderMovementComponent>(TEXT("Movement"));
 	MovementComponent->UpdatedComponent = RootComponent;
@@ -84,7 +85,6 @@ void ACollider::Tick(float DeltaTime)
 	//Setting clamp so that it will not go below -80.f and above -.3.f
 	SpringArmRotation.Pitch = FMath::Clamp(SpringArmRotation.Pitch + CameraInput.Y,-80.f,-.3f );
 	springarm->SetWorldRotation(SpringArmRotation);
-
 }
 
 // Called to bind functionality to input
