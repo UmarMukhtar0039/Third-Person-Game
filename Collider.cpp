@@ -24,6 +24,9 @@ ACollider::ACollider()
 	//This is collision presets.
 	SphereComponent->SetCollisionProfileName(TEXT("Pawn"));
 	SphereComponent->SetHiddenInGame(true);
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pawn"));
 	MeshComponent->SetupAttachment(GetRootComponent());

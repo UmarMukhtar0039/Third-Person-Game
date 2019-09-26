@@ -43,7 +43,7 @@ public:
 	float BaseLookUpRate;	
 
 	FORCEINLINE class USpringArmComponent* GetCameraBoom()const {return CameraBoom;}
-	FORCEINLINE class UCameraComponent* GetFollowCamera()const {return FollowCamera};
+	FORCEINLINE class UCameraComponent* GetFollowCamera()const { return FollowCamera; }
 	
 	// called for forwards and backwards input
 	void MoveForward(float value);
