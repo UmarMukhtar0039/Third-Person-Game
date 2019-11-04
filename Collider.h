@@ -51,24 +51,25 @@ public:
 	
 	// Camera
 	FORCEINLINE UCameraComponent* GetCameraComponent() const { return Camera; }
-	FORCEINLINE void SetCameraComponent(UCameraComponent* inputcamera) { Camera = inputcamera; }
+	FORCEINLINE void SetCameraComponent(UCameraComponent* const inputcamera) { Camera = inputcamera; }
 	//Springarm
 	FORCEINLINE USpringArmComponent* GetSpringArmComponent() const { return springarm; }
-	FORCEINLINE void SetSpringArmComponent(USpringArmComponent* inputspringarm) { springarm = inputspringarm; }
+	FORCEINLINE void SetSpringArmComponent(USpringArmComponent* const inputspringarm) { springarm = inputspringarm; }
 	//Movement
 	virtual UPawnMovementComponent* GetMovementComponent()const override;
 
+	//virtual	void AddControllerPitchInput(float Val)override;
 
+	//virtual void AddControllerYawInput(float Val) override;
 
-	
+	void PitchCamera(float axisvalue);
+	void YawCamera(float axisvalue);
+
 private:
 	//Pawn Movement
 	void Forward(float input);
 	void Right(float input);
 
 	//Camera Movement (Mouse Movement)
-	void PitchCamera(float axisvalue);
-	void YawCamera(float axisvalue);
-
 	FVector2D CameraInput;
 };

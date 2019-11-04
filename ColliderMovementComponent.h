@@ -16,7 +16,7 @@ class BASICS_API UColliderMovementComponent : public UPawnMovementComponent
 	
 public:
 
-void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 //Can't do this
 //UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "MovementSpeed")

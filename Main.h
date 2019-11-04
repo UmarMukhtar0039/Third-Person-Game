@@ -17,12 +17,11 @@ public:
 
 protected:
 	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
+	//virtual void BeginPlay() override;
+	//class UPoseableMeshComponent* p;
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+	//virtual void Tick(float DeltaTime) override;
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -34,7 +33,6 @@ public:
 	/** Follow Camera*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
-
 	/** Base turn rates to scale turning functions for the camera*/ 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	float BaseTurnRate;	
@@ -51,11 +49,11 @@ public:
 	void MoveRight(float value);
 	
 	/**called via input to turn at a given rate
-	 * @param Rate this is a normalized rate i.e. 1.0 means 100% of desired turn rate 
+	 * @param rate: this is a normalized rate i.e. 1.0 means 100% of desired turn rate 
 	 */
 	void TurnAtRate(float rate);
 	/**called via input to turn at a given rate
-	 * @param Rate this is a normalized rate i.e. 1.0 means 100% of desired lookup/down rate 
+	 * @param rate: this is a normalized rate i.e. 1.0 means 100% of desired lookup/down rate 
 	 */
 	void LookUpAtRate(float rate);
 

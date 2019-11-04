@@ -14,7 +14,7 @@ class BASICS_API ACritter : public APawn
 public:
 	// Sets default values for this pawn's properties
 	ACritter();
-	UPROPERTY(VisibleAnywhere, Category = "Mesh")
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "Mesh")
 	UStaticMeshComponent* StaticMesh;
 
 	UPROPERTY(VisibleAnywhere, Category = "Mesh")
@@ -26,9 +26,8 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "Movement")
 	FVector CurrentVelocity;
 
-	UPROPERTY(EditInstanceOnly, Category = "Movement")
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Movement")
 	float speed;
-
 private:
 	void Forward(float input);
 	void Right(float input);
@@ -37,14 +36,14 @@ private:
 
 protected:
 	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	 void BeginPlay() override;
 
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 
 

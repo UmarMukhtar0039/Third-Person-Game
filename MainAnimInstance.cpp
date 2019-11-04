@@ -21,10 +21,12 @@ void UMainAnimInstance::UpdateAnimationProperties()
 		Pawn = TryGetPawnOwner();
 
 	if (Pawn)
-	{
+	{	
 		FVector speed = Pawn->GetVelocity();
 		FVector lateralspeed(speed.X, speed.Y, 0.f);
 		MovementSpeed = lateralspeed.Size();
+		//UE_LOG(LogTemp, Warning, TEXT("Movement Speed: %f"), MovementSpeed);
+		
 		bIsInAir = Pawn->GetMovementComponent()->IsFalling();
 	}
 		

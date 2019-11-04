@@ -3,23 +3,25 @@
 
 #include "Main.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Camera/CameraComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
-#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+//#include "Components/PoseableMeshComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Camera/CameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 AMain::AMain()
 {
+	
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetRootComponent());
 	CameraBoom->TargetArmLength = 600.f; // Camera 600 units far
 	CameraBoom->bUsePawnControlRotation = true; //Rotate Arm Based on controller
-
 	//Hard Coding Capsule collision component	
 	GetCapsuleComponent()->SetCapsuleSize(48.f,105.f);
 	//Making Player Turn and Move in direction where camera is pointing
@@ -43,22 +45,20 @@ AMain::AMain()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
-
 }
 
-// Called when the game starts or when spawned
-void AMain::BeginPlay() 
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void AMain::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
+//// Called when the game starts or when spawned
+//void AMain::BeginPlay() 
+//{
+//	Super::BeginPlay();
+//}
+//
+//// Called every frame
+//void AMain::Tick(float DeltaTime)
+//{
+//	Super::Tick(DeltaTime);
+//	
+//}
 
 // Called to bind functionality to input
 void AMain::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -72,9 +72,9 @@ void AMain::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	
 	PlayerInputComponent->BindAxis(TEXT("Forward"), this, &AMain::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("Right"), this, &AMain::MoveRight);
-
-	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &APawn::AddControllerYawInput);
+	
 	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &APawn::AddControllerYawInput);
 
 	PlayerInputComponent->BindAxis(TEXT("TurnRate"), this, &AMain::TurnAtRate);
 	PlayerInputComponent->BindAxis(TEXT("LookUpRate"), this, &AMain::LookUpAtRate);
@@ -96,7 +96,7 @@ void AMain::MoveRight(float value)
 {
 		if( (Controller!= nullptr) && (value != 0.f) )
 	{ // Find the Direction to move when we rotate camera
-			const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator Rotation = Controller->GetControlRotation();
 	//Here Yaw of YawRotation is given by Controller's Yaw.
 		const FRotator YawRotation(0.f,Rotation.Yaw,0.f);
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
@@ -106,11 +106,24 @@ void AMain::MoveRight(float value)
 
 void AMain::TurnAtRate(float rate)
 {
+	//UE_LOG(LogTemp, Warning, TEXT("TurnRate %f"), rate* BaseTurnRate* GetWorld()->GetDeltaSeconds());
 	AddControllerYawInput(rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
 void AMain::LookUpAtRate(float rate)
 {
-	AddControllerPitchInput(rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+	//UE_LOG(LogTemp, Warning, TEXT("LookupRate %f"), FMath::Clamp(rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds(),-.5f,.5f));
+	AddControllerPitchInput(FMath::Clamp(rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds(),-.5f,.5f));
+
+	// Just Trying out Head Rotation
+	//const FRotator Rotation = Controller->GetControlRotation();
+	////Here Yaw of YawRotation is given by Controller's Yaw.
+	//const FRotator PitchRotation(Rotation.Yaw,0.f, 0.f);
+	//const FVector Direction = FRotationMatrix(PitchRotation).GetUnitAxis(EAxis::X);
+	//GetMesh()->GetSocketTransform(TEXT("HeadSocket")).TransformPosition(Direction);
+
+	//auto s = GetMesh()->GetAnimInstance();
+	//const FRotator Fr = Controller->GetControlRotation();
+
 }
 

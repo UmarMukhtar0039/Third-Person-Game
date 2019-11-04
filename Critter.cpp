@@ -28,9 +28,9 @@ ACritter::ACritter()
 	Camera->SetupAttachment(springarm);
 	Camera->SetRelativeLocation(FVector(-300.f, 0.f, 0.f), true);
 	Camera->SetRelativeRotation(FRotator(-45.f, 0.f, 0.f));
-
+	
 	CurrentVelocity = FVector(0.f);
-	speed = 100.f;
+	speed = 50.f;
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
@@ -46,8 +46,11 @@ void ACritter::BeginPlay()
 void ACritter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	FVector Newlocation(GetActorLocation() + CurrentVelocity * DeltaTime);
-	SetActorLocation(Newlocation);
+	//CurrentVelocity = CurrentVelocity.GetSafeNormal();
+	FVector Newlocation(GetActorLocation() + CurrentVelocity * DeltaTime );
+	//UE_LOG(LogTemp, Warning, TEXT("X : %f , Y : %f"), CurrentVelocity.X, CurrentVelocity.Y);
+	FHitResult hit;
+	SetActorLocation(Newlocation,true,&hit,ETeleportType::TeleportPhysics);
 }
 
 // Called to bind functionality to input
@@ -61,11 +64,11 @@ void ACritter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ACritter::Forward(float input)
 {
-	CurrentVelocity.Y = FMath::Clamp(input, -1.f, 1.f) * speed;
+	CurrentVelocity.X = FMath::Clamp(input, -1.f, 1.f) * speed;
 }
 
 void ACritter::Right(float input)
 {
-	CurrentVelocity.X = FMath::Clamp(input, -1.f, 1.f) * speed;
+	CurrentVelocity.Y = FMath::Clamp(input, -1.f, 1.f) * speed;
 }
 
