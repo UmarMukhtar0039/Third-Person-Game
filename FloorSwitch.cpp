@@ -32,7 +32,6 @@ AFloorSwitch::AFloorSwitch()
 void AFloorSwitch::BeginPlay()
 {
 	Super::BeginPlay();
-	
 	TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AFloorSwitch::OnOverlapBegin);
 	TriggerBox->OnComponentEndOverlap.AddDynamic(this, &AFloorSwitch::OnOverlapEnd);
 	
@@ -50,7 +49,6 @@ void AFloorSwitch::Tick(float DeltaTime)
 
 void AFloorSwitch::OnOverlapBegin( UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Overlap Begin"));
 	if(!bCharacterOnSwitch)
 	bCharacterOnSwitch = true;
 	LowerFloorSwitch();

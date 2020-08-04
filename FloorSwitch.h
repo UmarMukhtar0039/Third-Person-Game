@@ -63,7 +63,7 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent,Category = "FloorSwitch")
 	void LowerFloorSwitch();
-
+	 
 	UFUNCTION(BlueprintCallable, Category = "FloorSwitch")
 	void UpdateDoorLocation(float Z);
 

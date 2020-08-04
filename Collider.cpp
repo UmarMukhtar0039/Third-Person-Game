@@ -10,7 +10,6 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "ColliderMovementComponent.h"
-#include "CameraController.h"
 #include "GameFramework/PlayerController.h"
 
 // Sets default values
