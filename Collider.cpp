@@ -44,7 +44,7 @@ ACollider::ACollider()
 
 	springarm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	springarm->SetupAttachment(GetRootComponent());
-	springarm->RelativeRotation = {-45.f, 0.f, 0.f};
+	springarm->SetRelativeRotation({ -45.f, 0.f, 0.f });
 	springarm->TargetArmLength = 400.f;
 	springarm->bEnableCameraLag = true;
 	springarm->CameraLagSpeed = 3.f;

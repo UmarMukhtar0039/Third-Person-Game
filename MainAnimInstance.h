@@ -32,4 +32,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = MainCharacter)
 	class AMain* Main;
 
+
+public:
+	//Head Rotation
+	bool bShouldRotateHead;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation | Neck Movement")
+	FRotator NeckRotation;
 };
