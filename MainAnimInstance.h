@@ -32,6 +32,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = MainCharacter)
 	class AMain* Main;
 
+	UPROPERTY(BlueprintReadWrite, Category = References)
+	USkeletalMeshComponent* Mesh;
+
 
 public:
 	//Head Rotation

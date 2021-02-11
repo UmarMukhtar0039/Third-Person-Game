@@ -16,6 +16,7 @@
 #include "Engine/EngineTypes.h"
 #include "TimerManager.h"
 #include "Components/CapsuleComponent.h"
+#include "Weapon.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -41,7 +42,7 @@ AEnemy::AEnemy()
 	Damage = 10.f;
 	AttackMinTime = 0.5f;
 	AttackMaxTime = 2.5f;
-	DeathDelay = 3.f;
+	DeathDelay = 1.f;
 	EnemyMovementStatus = EEnemyMovementStatus::EMS_Idle;
 	bHasValidTarget = false;
 }
@@ -67,7 +68,6 @@ void AEnemy::BeginPlay()
 	CombatCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	CombatCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	CombatCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-
 }
 
 // Called every frame
@@ -155,10 +155,11 @@ void AEnemy::CombatSphereOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, 
 			{
 				MoveToTarget(Main);
 				CombatTarget = nullptr;
+
 				if (Main->CombatTarget == this)
 				{
 					Main->SetCombatTarget(nullptr);
-					Main->bHasCombatTarget=false;
+					Main->SetHasCombatTarget(false);
 					Main->UpdateCombatTarget();
 				}
 			}
@@ -189,8 +190,6 @@ void AEnemy::MoveToTarget(AMain * Target)
 		FNavPathSharedPtr NavPath;
 
 		AIController->MoveTo(MoveRequest, &NavPath);
-
-		//UE_LOG(LogTemp, Warning, TEXT("MOving"));
 		
 		//For Debugging movement path of the Enemy towards the target
 		/**
@@ -312,11 +311,13 @@ void AEnemy::Die(AActor* Causer)
 	AMain* Main = Cast<AMain>(Causer);
 	if (Main)
 	{
-		Main->MainPlayerController->RemoveEnemyHealthBar();
-		UE_LOG(LogTemp, Warning, TEXT("Removing Health Bar"));
-
+		Main->SetCombatTarget(nullptr);
+		Main->SetHasCombatTarget(false);
 		Main->UpdateCombatTarget();
+		
+		Main->MainPlayerController->RemoveEnemyHealthBar();
 	}
+
 	CombatCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	AgroSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CombatSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -339,7 +340,5 @@ bool AEnemy::Alive()
 
 void AEnemy::Disappear()
 {
-//GetMesh()->SetVisibility(false);
-	UE_LOG(LogTemp, Warning, TEXT("Destroyed"));
 	Destroy();
 }

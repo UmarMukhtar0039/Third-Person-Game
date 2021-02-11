@@ -43,6 +43,8 @@ public:
 	virtual void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
 
 	void Equip(class AMain* Character);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Owner")
+	class AMain* OwnerPawn;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item | Combat")
 	class UBoxComponent* CombatCollision;

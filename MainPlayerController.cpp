@@ -55,8 +55,6 @@ void AMainPlayerController::RemoveEnemyHealthBar()
 {
 	if (EnemyHealthBar)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Removing Health Bar"));
-
 		bEnemyHealthBarVisible = false;
 		EnemyHealthBar->SetVisibility(ESlateVisibility::Hidden);
 	}

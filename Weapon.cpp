@@ -11,6 +11,7 @@
 #include "Components/BoxComponent.h"
 #include "Enemy.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Components/TextRenderComponent.h"
 
 AWeapon::AWeapon()
 {
@@ -23,6 +24,7 @@ AWeapon::AWeapon()
 	CombatCollision->SetupAttachment(RootComponent);
 
 	Damage = 25.f;
+	OwnerPawn = nullptr;
 }
 
 void AWeapon::BeginPlay()
@@ -36,6 +38,12 @@ void AWeapon::BeginPlay()
 	
 	CombatCollision->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::CombatOnOverlapBegin);
 	CombatCollision->OnComponentEndOverlap.AddDynamic(this, &AWeapon::CombatOnOverlapEnd);
+
+	FVector ActorLocation = GetActorLocation();
+	
+	EquipItemText->SetWorldLocation(FVector(ActorLocation.X,ActorLocation.Y, ActorLocation.Z));
+	EquipItemText->SetVisibility(true);
+	EquipItemText->SetVisibleFlag(true);
 }
 
 void AWeapon::OnOverlapBegin(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -82,6 +90,7 @@ void AWeapon::Equip(AMain * Character)
 {
 	if (Character)
 	{
+		OwnerPawn = Character;
 		SetInstigator(Character->GetController());
 
 		// Just to be super cautious that the weapon doesn't collide with camera and char itself
@@ -111,6 +120,12 @@ void AWeapon::Equip(AMain * Character)
 			IdleParticlesComponent->Deactivate();
 		}		
 		SetWeaponState(EWeaponState::EWS_Equipped);
+		if (EquipItemText)
+		{
+			EquipItemText->SetVisibility(false);
+			EquipItemText->SetVisibleFlag(false);
+			//EquipItemText->DestroyComponent(true);
+		}
 	}
 }
 
@@ -138,7 +153,10 @@ void AWeapon::CombatOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AAc
 
 			if ( DamageTypeClass )
 			{
-				UGameplayStatics::ApplyDamage(Enemy, Damage, WeaponInstigator, this, DamageTypeClass);
+				if (OwnerPawn)
+				{
+					UGameplayStatics::ApplyDamage(Enemy, Damage, WeaponInstigator, OwnerPawn, DamageTypeClass);
+				}
 			}
 		}
 	}
@@ -146,7 +164,6 @@ void AWeapon::CombatOnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AAc
 
 void AWeapon::CombatOnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-
 }
 
 void AWeapon::ActivateCollision()

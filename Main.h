@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "MyTypes.h"
 #include "Main.generated.h"
 
 UENUM(BlueprintType)
@@ -26,6 +27,10 @@ enum class EStaminaStatus : uint8
 	
 	ESS_MAX UMETA(DisplayName = "DefaultMAX")
 };
+
+class UMPhysicalMaterial;
+class UAudioComponent;
+class USkeletalMeshComponent;
 
 UCLASS()
 class BASICS_API AMain : public ACharacter
@@ -231,4 +236,92 @@ public:
 	bool bESCDown;
 	void ESCDown();
 	void ESCUp();
+
+public:
+	/***** Wall Impact *****/
+	/*
+	* Max LOD that wall impact is allowed to run
+	* For example if you have LODThreshold to be 2, it will run until LOD 2 (based on 0 index)
+	* when the component LOD becomes 3, it will stop
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Impact: Wall", meta = (DisplayName = "Impact LOD Threshold"))
+	int32 ImpactLODThreshold;
+	
+	/**
+	 * Impact velocity must exceed this when running into a wall to play a sound (set in physical material)
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Impact: Wall")
+	float HitWallImpactVelocityThreshold;
+
+	/** 
+	 * Impact velocity must exceed this when walking into a wall to play a scuffing sound (set in physical material)
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Impact: Wall")
+	float ScuffWallSoundVelocityThreshold;
+
+	/** Up normal of the wall surface relative to wall up before it wont allow us to hit it */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay, Category = "Impact: Wall")
+	float HitMaxUpNormal;
+
+	/** 
+	 * Movement vector (acceleration) difference to the wall before it wont allow us to hit it 
+	 * Lower is easier to trigger
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay, Category = "Impact: Wall")
+	float HitMaxMovementNormal;
+
+	/** Up normal of the wall surface relative to wall up before it wont allow us to scuff it */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay, Category = "Impact: Wall")
+	float ScuffMaxUpNormal;
+
+	/** 
+	 * Movement vector (acceleration) difference to the wall before it wont allow us to scuff it 
+	 * Lower is easier to trigger
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay, Category = "Impact: Wall")
+	float ScuffMaxMovementNormal;
+
+	/** Hit wall scuffle can only be played this often */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Impact: Wall")
+	float ScuffWallSoundMinInterval;
+
+	/** Hit wall scuffle can only be played this often */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Impact: Wall")
+	float ScuffWallParticleMinInterval;
+
+	/** Physical material to use when none is assigned to the material being interacted with */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Impact")
+	UMPhysicalMaterial* DefaultPhysicalMaterial;
+	
+	/** Blending for impact from hitting a wall */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Impact: Wall")
+	FPhysicsBlend HitImpactPhysics;
+
+	/** Mesh -> Impact Struct -> BoneName -> PhysicsBlend */
+	UPROPERTY()
+	TMap<USkeletalMeshComponent*, FMShotImpact> ShotBonePhysicsImpacts;
+
+protected:
+	FVector PendingInput;
+
+	FTimerHandle ScuffWallSoundTimerHandle;
+	FTimerHandle ScuffWallParticleTimerHandle;
+	FTimerHandle HitWallSoundTimerHandle;
+	FTimerHandle HitCharacterTimerHandle;
+	FTimerHandle HitByCharacterTimerHandle;
+	FTimerHandle HitByCharacterVoiceTimerHandle;
+
+	UPROPERTY()
+	UAudioComponent* HitWallAudioComponent;
+
+public:
+	bool IsValidLOD(const int32& LODThreshold) const;
+	void TickShotImpacts(float DeltaTime);
+
+	UFUNCTION()
+	void OnCapsuleComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	void OnCollideWith(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	void HandleMeshImpact(FPhysicsBlend& ImpactPhysics, const FVector& ImpactNormal, const FVector& ImpactVelocity);
 };

@@ -19,7 +19,10 @@
 #include "MainPlayerController.h"
 #include "FirstSaveGame.h"
 #include "ItemStorage.h"
-//#include "Components/PoseableMeshComponent.h"
+#include "Components/TextRenderComponent.h"
+#include "MPhysicalMaterial.h"
+#include "GameFramework/PhysicsVolume.h"
+#include "Components/AudioComponent.h"
 
 // Sets default values
 AMain::AMain()
@@ -43,6 +46,13 @@ AMain::AMain()
 	//Attach the camera to the end of the boom and let the boom adjust to match the controller orientation.
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+
+	HitWallAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("HitWallAudioComponent"));
+	HitWallAudioComponent->bAutoActivate = false;
+	// Hides the annoying audio icon from the blueprint of this class
+#if WITH_EDITORONLY_DATA
+	HitWallAudioComponent->bVisualizeComponent = false;
+#endif
 
 	//Set our turn rates for input
 	BaseTurnRate = 65.f;
@@ -80,6 +90,32 @@ AMain::AMain()
 	InterpSpeed = 15.f;
 	bInterpToEnemy = false;
 	bHasCombatTarget=false;
+
+	// Hit Impact Physics
+	HitImpactPhysics.BoneName = "Spine2";
+	HitImpactPhysics.BlendIn.SetBlendTime(0.1f);
+	HitImpactPhysics.BlendIn.SetBlendOption(EAlphaBlendOption::CircularOut);
+	HitImpactPhysics.BlendOut.SetBlendTime(0.35f);
+	HitImpactPhysics.BlendOut.SetBlendOption(EAlphaBlendOption::CircularIn);
+	HitImpactPhysics.MaxBlendWeight = 0.5f;
+
+	// Character Wall Impacts stuff
+	ImpactLODThreshold = 2;
+	HitWallImpactVelocityThreshold = 200.f;
+
+	ScuffWallSoundVelocityThreshold = 80.f;
+	ScuffWallSoundMinInterval = 0.2f;
+	ScuffWallParticleMinInterval = 0.01f;
+
+	HitMaxUpNormal = 0.f;
+	HitMaxMovementNormal = 0.83f;
+	ScuffMaxUpNormal = 0.f;
+	ScuffMaxMovementNormal = 0.f;
+
+	GetCapsuleComponent()->bReturnMaterialOnMove = true;
+
+	GetMesh()->SetCollisionObjectType(ECC_PhysicsBody);  // Can't be of type 'pawn' or capsule will block shots meant for the mesh for shot reactions
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);  // Required for shot reactions and physics blend
 }
 
 // Called when the game starts or when spawned
@@ -101,14 +137,52 @@ void AMain::BeginPlay()
 		}
 	}
 
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AMain::OnCapsuleComponentHit);
 }
 
+void AMain::TickShotImpacts(float DeltaTime)
+{
+	TArray<USkeletalMeshComponent*> CompletedMeshes;
+	// TMap<USkeletalMeshComponent*, FMShotImpact> ShotBonePhysicsImpacts;
+	for (auto& MeshItr : ShotBonePhysicsImpacts)
+	{
+		FMShotImpact& ShotImpact = MeshItr.Value;
+		TArray<FName> Completed;
+		// TMap<FName, FPhysicsBlend> BoneMap;
+		for (auto& PhysicsItr : ShotImpact.BoneMap)
+		{
+			FPhysicsBlend& Blend = PhysicsItr.Value;
+			const bool bCompleted = Blend.Update(MeshItr.Key, DeltaTime);
+			if (bCompleted)
+			{
+				Completed.Add(PhysicsItr.Key);
+			}
+		}
+
+		// Remove all completed impacts
+		for (const FName& CompletedName : Completed)
+		{
+			ShotImpact.BoneMap.Remove(CompletedName);
+		}
+
+		if (ShotImpact.BoneMap.Num() == 0)
+		{
+			CompletedMeshes.Add(MeshItr.Key);
+		}
+	}
+
+	// Remove all completed meshes
+	for (const USkeletalMeshComponent* const CompletedMesh : CompletedMeshes)
+	{
+		ShotBonePhysicsImpacts.Remove(CompletedMesh);
+	}
+}
 
 // Called every frame
 void AMain::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 	if(MovementStatus == EMovementStatus::EMS_Dead) return;
 
 	float DeltaStamina = StaminaDrainRate * DeltaTime;
@@ -211,9 +285,8 @@ void AMain::Tick(float DeltaTime)
 			MainPlayerController->EnemyLocation = CombatTargetLocation;
 		}
 	}
-
+	TickShotImpacts(DeltaTime);
 }
-
 
 // Called to bind functionality to input
 void AMain::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -535,7 +608,7 @@ void AMain::UpdateCombatTarget()
 	
 	GetOverlappingActors(OverlappingActors, EnemyFilter);
 
-	if (OverlappingActors.Num()==0) 
+	if (OverlappingActors.Num()==0)
 	{
 		if	(MainPlayerController) 		MainPlayerController->RemoveEnemyHealthBar(); 
 				return;
@@ -563,8 +636,11 @@ void AMain::UpdateCombatTarget()
 			MainPlayerController->DisplayEnemyHealthBar();
 		}
 
-		SetCombatTarget(ClosestEnemy);
-		bHasCombatTarget=true;
+		if (ClosestEnemy->Alive())
+		{
+			SetCombatTarget(ClosestEnemy);
+			bHasCombatTarget=true;
+		}
 	}
 }
 
@@ -690,4 +766,166 @@ void AMain::ESCDown()
 void AMain::ESCUp()
 {
 	bESCDown=false;
+}
+
+bool AMain::IsValidLOD(const int32& LODThreshold) const
+{
+	if (GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		const int32 LODLevel = GetMesh()->PredictedLODLevel;
+		const bool bValidLOD = LODThreshold == INDEX_NONE || LODLevel <= LODThreshold;
+		return bValidLOD;
+	}
+	return true;
+}
+
+void AMain::OnCapsuleComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	// HandleImpact
+	if (!OtherActor || !OtherActor->IsA(AMain::StaticClass()))
+	{
+		if (IsValidLOD(ImpactLODThreshold))
+		{
+			OnCollideWith(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+		}
+	}
+}
+
+void AMain::OnCollideWith(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	FVector Velocity = GetCharacterMovement()->GetLastUpdateVelocity();
+
+	// Use the larger velocity
+	if (OtherActor && OtherActor->GetVelocity().Size() > Velocity.Size())
+	{
+		Velocity = OtherActor->GetVelocity();
+	}
+
+	float Speed = Velocity.Size();
+
+	const bool bIsHit = Speed >= HitWallImpactVelocityThreshold && !GetWorldTimerManager().IsTimerActive(HitWallSoundTimerHandle);
+
+	// Scuffing doesn't use an impact velocity
+	if (!bIsHit)
+	{
+		Speed = Velocity.Size();
+	}
+
+	const bool bIsScuff = !bIsHit && Speed >= ScuffWallSoundVelocityThreshold;
+
+	if (!bIsHit && !bIsScuff)
+	{
+		// Can't do anything
+		return;
+	}
+
+	// Check the up normal, if its under us its better to play a land sound via other means ( because this is for running into things only)
+	const float BelowDot = (-Hit.Normal | GetActorUpVector());
+	const float MaxUpNormal = bIsHit ? HitMaxUpNormal : ScuffMaxUpNormal;
+	if (!FMath::IsNearlyZero(Hit.Normal.Z, .01f) && BelowDot < MaxUpNormal)
+	{
+		return;
+	}
+
+	// Check the direction of impact is valid
+	{
+		// Used to check the direction of the impact
+		FVector MovementVector = !GetCharacterMovement()->GetCurrentAcceleration().IsNearlyZero() ? GetCharacterMovement()->GetCurrentAcceleration() : Velocity;
+
+		// Insufficient information
+		if (MovementVector.IsNearlyZero())
+		{
+			return;
+		}
+
+		// Check the facing normal, if its not in our moving direction then do nothing
+		const float MovementDot = (-Hit.ImpactNormal | MovementVector.GetSafeNormal2D());
+		const float MaxMovementNormal = (bIsHit) ? HitMaxMovementNormal : ScuffMaxMovementNormal;
+
+		/*DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + MovementVector.GetSafeNormal() * 200.f, 40.f, FColor::Blue, false, -1.f, 0, 2.f);
+		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + -Hit.ImpactNormal * 200.f, 40.f, FColor::Red, false, -1.f, 0, 2.f);*/
+
+		if (MovementDot < MaxMovementNormal)
+		{
+			// Not sufficiently facing wall
+			return;
+		}
+	}
+
+	// Either hit or scuff succeeded
+	if (bIsHit)
+	{
+		GetWorldTimerManager().SetTimer(HitWallSoundTimerHandle, 0.1f, false);
+	}
+
+	UMPhysicalMaterial* PhysMat = Hit.PhysMaterial.IsValid() ? Cast<UMPhysicalMaterial>(Hit.PhysMaterial.Get()) : nullptr;
+	if (!PhysMat) { PhysMat = DefaultPhysicalMaterial; }
+	if (PhysMat)
+	{
+
+		// Play sound effect
+		USoundBase* const SoundToPlay = bIsHit ? PhysMat->HitSound : PhysMat->ScuffSound;
+		if (SoundToPlay)
+		{
+			const FRuntimeFloatCurve& VolumeCurve = bIsHit ? PhysMat->HitVelocityToVolume : PhysMat->ScuffVelocityToVolume;
+			const FRuntimeFloatCurve& PitchCurve = bIsHit ? PhysMat->HitVelocityToPitch : PhysMat->ScuffVelocityToPitch;
+			const float Volume = VolumeCurve.GetRichCurveConst()->Eval(Speed);
+			const float Pitch = PitchCurve.GetRichCurveConst()->Eval(Speed);
+
+			if (Volume > 0.f && Pitch > 0.f)
+			{
+				if (bIsHit)
+				{
+					// Modify existing volume if it has increased
+					// This is required because initial impact doesn't always have highest velocity
+					HitWallAudioComponent->SetVolumeMultiplier(Volume);
+					HitWallAudioComponent->SetPitchMultiplier(Pitch);
+					if (!HitWallAudioComponent->IsPlaying())
+					{
+						HitWallAudioComponent->SetSound(SoundToPlay);
+						HitWallAudioComponent->Play();
+					}
+				}
+				else if (!GetWorldTimerManager().IsTimerActive(ScuffWallSoundTimerHandle))
+				{
+					UGameplayStatics::PlaySoundAtLocation(this, SoundToPlay, Hit.ImpactPoint, Volume, Pitch);
+
+					if (ScuffWallSoundMinInterval > 0.f)
+					{
+						GetWorldTimerManager().SetTimer(ScuffWallSoundTimerHandle, ScuffWallSoundMinInterval, false);
+					}
+				}
+			}
+		}
+
+		// Play particle effect
+		UParticleSystem* const ParticleToPlay = bIsHit ? PhysMat->HitParticle : PhysMat->ScuffParticle;
+		if (ParticleToPlay)
+		{
+			const bool bTimerOn = !bIsHit && GetWorldTimerManager().IsTimerActive(ScuffWallParticleTimerHandle);
+			if (!bTimerOn)
+			{
+				const FVector WallNormal = (FVector::UpVector ^ Hit.ImpactNormal) ^ Hit.ImpactNormal;
+
+				const FTransform ParticleTransform(WallNormal.Rotation(), Hit.ImpactPoint, FVector::OneVector);
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleToPlay, ParticleTransform, true, EPSCPoolMethod::AutoRelease);
+
+				if (ScuffWallParticleMinInterval > 0.f)
+				{
+					GetWorldTimerManager().SetTimer(ScuffWallParticleTimerHandle, ScuffWallParticleMinInterval, false);
+				}
+			}
+		}
+	}
+
+	// Play physics animation
+	if (bIsHit)
+	{
+		HandleMeshImpact(HitImpactPhysics, Hit.ImpactNormal, Velocity);
+	}
+}
+
+void AMain::HandleMeshImpact(FPhysicsBlend& ImpactPhysics, const FVector& ImpactNormal, const FVector& ImpactVelocity)
+{
+	ImpactPhysics.Impact(GetMesh(), ImpactNormal, ImpactVelocity.Size());
 }

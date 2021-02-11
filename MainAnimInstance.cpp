@@ -18,10 +18,13 @@ void UMainAnimInstance::NativeInitializeAnimation()
 
 			NeckRotation = FRotator(0.f);
 			bShouldRotateHead = false;
+			if (Main)
+			{
+				Mesh = Main->GetMesh();
+			}
 		}
 	}
 }
-
 
 
 void UMainAnimInstance::UpdateAnimationProperties()
@@ -76,7 +79,7 @@ void UMainAnimInstance::UpdateAnimationProperties()
 			anglebwFV_PC *= 0.5f;
 			anglebwFV_PC = FMath::ClampAngle(anglebwFV_PC, -30.f, 30.f); // limit player's head rotation b/w 0 to 32 degrees
 			
-			//Head's Pitch Rotation
+			// Head's Pitch Rotation
 			float CameraPitch = PlayerCameraManager->GetCameraRotation().Pitch; //This is used to limit head's pitch rotation.s 
 			CameraPitch *= -0.5f;
 			if (CameraPitch < 11.f && CameraPitch > 3.f)// in these conditions we don't need to rotate head's pitch
@@ -91,12 +94,18 @@ void UMainAnimInstance::UpdateAnimationProperties()
 			// We are doing this because of orientation of neck bone in local space
 			FRotator TargetRotation = FRotator(0.f, anglebwFV_PC, CameraPitch);
 
-			//here we receive the final value of rotation be be used by the bone rotation nodes in anim bp
+			// here we receive the final value of rotation be be used by the bone rotation nodes in anim bp
 			NeckRotation = FMath::RInterpTo(NeckRotation, bOutofBounds ? FRotator(0.f) : TargetRotation, GetWorld()->GetDeltaSeconds(), 2.f);
 		}
 		else
 		{
 			NeckRotation = FMath::RInterpTo(NeckRotation, FRotator(0.f), GetWorld()->GetDeltaSeconds(), 2.f);
+		}
+
+
+		if (Main->HitImpactPhysics.IsActive())
+		{
+			Main->HitImpactPhysics.Update(Mesh, GetWorld()->GetDeltaSeconds());
 		}
 	}
 		

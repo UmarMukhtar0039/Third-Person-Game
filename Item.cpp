@@ -5,7 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
-
+#include "Components/TextRenderComponent.h"
 
 // Sets default values
 AItem::AItem()
@@ -22,6 +22,11 @@ AItem::AItem()
 	IdleParticlesComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("IdleParticlesComponent"));
 	IdleParticlesComponent->SetupAttachment(RootComponent);
 	
+	EquipItemText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("CameraBoom"));
+
+	EquipItemText->SetText(FString(TEXT("Press E to Equip")));
+	EquipItemText->SetVisibility(false);
+
 	bShouldRotate = false;
 	RotationRate = 45.f;
 }
@@ -44,6 +49,11 @@ void AItem::Tick(float DeltaTime)
 		FRotator Rotation = GetActorRotation();
 		Rotation.Yaw += DeltaTime * RotationRate;
 		SetActorRotation(Rotation);
+		//bcz we don't need text rotating
+		if (EquipItemText)
+		{
+			EquipItemText->SetWorldRotation(FRotator(0.f,0.f,0.f));
+		}
 	}
 }
 
