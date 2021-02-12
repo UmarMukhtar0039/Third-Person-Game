@@ -140,43 +140,43 @@ void AMain::BeginPlay()
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AMain::OnCapsuleComponentHit);
 }
 
-void AMain::TickShotImpacts(float DeltaTime)
-{
-	TArray<USkeletalMeshComponent*> CompletedMeshes;
-	// TMap<USkeletalMeshComponent*, FMShotImpact> ShotBonePhysicsImpacts;
-	for (auto& MeshItr : ShotBonePhysicsImpacts)
-	{
-		FMShotImpact& ShotImpact = MeshItr.Value;
-		TArray<FName> Completed;
-		// TMap<FName, FPhysicsBlend> BoneMap;
-		for (auto& PhysicsItr : ShotImpact.BoneMap)
-		{
-			FPhysicsBlend& Blend = PhysicsItr.Value;
-			const bool bCompleted = Blend.Update(MeshItr.Key, DeltaTime);
-			if (bCompleted)
-			{
-				Completed.Add(PhysicsItr.Key);
-			}
-		}
-
-		// Remove all completed impacts
-		for (const FName& CompletedName : Completed)
-		{
-			ShotImpact.BoneMap.Remove(CompletedName);
-		}
-
-		if (ShotImpact.BoneMap.Num() == 0)
-		{
-			CompletedMeshes.Add(MeshItr.Key);
-		}
-	}
-
-	// Remove all completed meshes
-	for (const USkeletalMeshComponent* const CompletedMesh : CompletedMeshes)
-	{
-		ShotBonePhysicsImpacts.Remove(CompletedMesh);
-	}
-}
+//void AMain::TickShotImpacts(float DeltaTime)
+//{
+//	TArray<USkeletalMeshComponent*> CompletedMeshes;
+//	// TMap<USkeletalMeshComponent*, FMShotImpact> ShotBonePhysicsImpacts;
+//	for (auto& MeshItr : ShotBonePhysicsImpacts)
+//	{
+//		FMShotImpact& ShotImpact = MeshItr.Value;
+//		TArray<FName> Completed;
+//		// TMap<FName, FPhysicsBlend> BoneMap;
+//		for (auto& PhysicsItr : ShotImpact.BoneMap)
+//		{
+//			FPhysicsBlend& Blend = PhysicsItr.Value;
+//			const bool bCompleted = Blend.Update(MeshItr.Key, DeltaTime);
+//			if (bCompleted)
+//			{
+//				Completed.Add(PhysicsItr.Key);
+//			}
+//		}
+//
+//		// Remove all completed impacts
+//		for (const FName& CompletedName : Completed)
+//		{
+//			ShotImpact.BoneMap.Remove(CompletedName);
+//		}
+//
+//		if (ShotImpact.BoneMap.Num() == 0)
+//		{
+//			CompletedMeshes.Add(MeshItr.Key);
+//		}
+//	}
+//
+//	// Remove all completed meshes
+//	for (const USkeletalMeshComponent* const CompletedMesh : CompletedMeshes)
+//	{
+//		ShotBonePhysicsImpacts.Remove(CompletedMesh);
+//	}
+//}
 
 // Called every frame
 void AMain::Tick(float DeltaTime)
@@ -285,7 +285,7 @@ void AMain::Tick(float DeltaTime)
 			MainPlayerController->EnemyLocation = CombatTargetLocation;
 		}
 	}
-	TickShotImpacts(DeltaTime);
+	//TickShotImpacts(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -793,6 +793,13 @@ void AMain::OnCapsuleComponentHit(UPrimitiveComponent* HitComponent, AActor* Oth
 
 void AMain::OnCollideWith(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+
+	//return if collided with any Character/Pawn type bcz this hit impact is only for Actors or meshes
+	if (Cast<AEnemy>(OtherActor))
+	{
+		return;
+	}
+
 	FVector Velocity = GetCharacterMovement()->GetLastUpdateVelocity();
 
 	// Use the larger velocity

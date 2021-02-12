@@ -316,7 +316,7 @@ protected:
 
 public:
 	bool IsValidLOD(const int32& LODThreshold) const;
-	void TickShotImpacts(float DeltaTime);
+	//void TickShotImpacts(float DeltaTime);
 
 	UFUNCTION()
 	void OnCapsuleComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);

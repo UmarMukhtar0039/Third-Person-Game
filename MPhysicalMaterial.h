@@ -23,6 +23,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Effects)
 	USoundBase* ScuffSound;
 
+	/** Sound played when the character walks on this surface (footstep sound, usually) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Effects, meta = (DisplayName = "Bone Impact Sound (Footstep)"))
+	USoundBase* BoneImpactSound;
+
 	/** Particle spawned when the character runs into this surface at speed */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Effects)
 	UParticleSystem* HitParticle;
@@ -30,6 +34,10 @@ public:
 	/** Particle spawned when the character walks beside/into this surface (scuffling sound) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Effects)
 	UParticleSystem* ScuffParticle;
+
+	/** Particle spawned when the character walks on this surface (footstep sound, usually) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Effects, meta = (DisplayName = "Bone Impact Particle (Footstep)"))
+	UParticleSystem* BoneImpactParticle;
 
 	/** Maps Velocity [Time] to Volume [Value] when the character runs into this surface at speed */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Effects, meta = (DisplayName = "Hit [Velocity -> Volume]"))
@@ -47,11 +55,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Effects, meta = (DisplayName = "Scuff [Velocity -> Pitch]"))
 	FRuntimeFloatCurve ScuffVelocityToPitch;
 
+	/**  Maps Velocity [Time] to Volume [Value] when the character walks beside/into this surface (scuffling sound) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Effects, meta = (DisplayName = "Bone Impact (Footstep) [Velocity -> Volume]"))
+	FRuntimeFloatCurve BoneImpactVelocityToVolume;
+
+	/**  Maps Velocity [Time] to Pitch [Value] when the character walks beside/into this surface (scuffling sound) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Effects, meta = (DisplayName = "Bone Impact (Footstep) [Velocity -> Pitch]"))
+	FRuntimeFloatCurve BoneImpactVelocityToPitch;
+
 	UMPhysicalMaterial()
 		: HitSound(nullptr)
 		, ScuffSound(nullptr)
+		, BoneImpactSound(nullptr)
 		, HitParticle(nullptr)
 		, ScuffParticle(nullptr)
+		, BoneImpactParticle(nullptr)
 	{
 		HitVelocityToVolume.GetRichCurve()->AddKey(300.f, 1.0f);
 		HitVelocityToVolume.GetRichCurve()->AddKey(700.f, 1.5f);
@@ -59,5 +77,8 @@ public:
 
 		ScuffVelocityToVolume.GetRichCurve()->AddKey(0.f, 1.0f);
 		ScuffVelocityToPitch.GetRichCurve()->AddKey(0.f, 1.0f);
+
+		BoneImpactVelocityToVolume.GetRichCurve()->AddKey(0.f, 1.0f);
+		BoneImpactVelocityToPitch.GetRichCurve()->AddKey(0.f, 1.0f);
 	}
 };
